@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -45,52 +46,11 @@ namespace RemoteDesktopClient
 
         public void OnImageDataReceived(byte[] imageData)
         {
-            if (displayRenderControl.RenderScreenWidth == null)
-            {
-                Console.WriteLine("displayRenderControl.RenderScreenWidth == null");
-                return;
-            }
-
-            if (displayRenderControl.RenderScreenHeight == null)
-            {
-                Console.WriteLine("displayRenderControl.RenderScreenHeight == null");
-                return;
-            }
-
-            int imageDataLength = imageData.Length;
-            if (imageDataLength == 0)
-            {
-                Console.WriteLine("imageDataLength == 0");
-                return;
-            }
-
-            int expectedImageDataSize = (int)(displayRenderControl.RenderScreenWidth * displayRenderControl.RenderScreenHeight * 3);
-            //this.displayRenderControl.RenderScreenData = imageData;
-            if ((imageDataLength % expectedImageDataSize) != 0)
-            {
-                Console.WriteLine("imageDataLength % expectedImageDataSize != 0");
-                return;
-            }
-
             try
             {
-                int width = (int)displayRenderControl.RenderScreenWidth;
-                int height = (int)displayRenderControl.RenderScreenHeight;
-                Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        int index = (y * width + x) * 3;
-                        byte blue = imageData[index];
-                        byte green = imageData[index + 1];
-                        byte red = imageData[index + 2];
-                        bitmap.SetPixel(x, y, Color.FromArgb(red, green, blue));
-                    }
-                }
-
-                displayRenderControl.RenderingScreenImage = bitmap;
-                //displayRenderControl.Invalidate();
+                ImageWrapper pngImageWrapper = Utils.IMAGEWRAPPER_Get(imageData);
+                displayRenderControl.NewestFrameImage = pngImageWrapper;
+                displayRenderControl.Invalidate();
             }
             catch (Exception ex)
             {
@@ -112,7 +72,7 @@ namespace RemoteDesktopClient
                 this.remoteDesktopCommunication = communicationObj;
                 communicationObj.onReceiveHeightData += OnHeightInfoReceived;
                 communicationObj.onReceiveWidthData += OnWidthInfoReceived;
-                communicationObj.onFrameData += OnImageDataReceived;
+                communicationObj.onPngImageData += OnImageDataReceived;
                 communicationObj.startCommunication();
                 Console.WriteLine("communication stopped");
             }

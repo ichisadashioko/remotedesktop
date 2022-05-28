@@ -5,23 +5,6 @@ using System.Threading;
 
 namespace RemoteDesktopClient
 {
-    public static class Utils
-    {
-        public static byte[] DecompressGzipData(byte[] data)
-        {
-            using (var compressedStream = new System.IO.MemoryStream(data))
-            using (var zipStream = new System.IO.Compression.GZipStream(compressedStream, System.IO.Compression.CompressionMode.Decompress))
-            using (var resultStream = new System.IO.MemoryStream())
-            {
-                zipStream.CopyTo(resultStream);
-                return resultStream.ToArray();
-            }
-        }
-
-        public delegate void OnReceiveWidthData(int width);
-        public delegate void OnReceiveHeightData(int height);
-        public delegate void OnFrameData(byte[] data);
-    }
     public enum CommunicationState
     {
         GET_WIDTH,
@@ -38,7 +21,7 @@ namespace RemoteDesktopClient
         List<byte> pendingData = new List<byte>();
 
         public Thread handlePendingDataThread = null;
-        public Utils.OnFrameData onFrameData = null;
+        public Utils.OnReceivePngImageData onPngImageData = null;
         public Utils.OnReceiveWidthData onReceiveWidthData = null;
         public Utils.OnReceiveHeightData onReceiveHeightData = null;
 
@@ -54,6 +37,7 @@ namespace RemoteDesktopClient
             byte[] compressedDataSizeBytes = new byte[4];
             uint compressedDataSize;
             int estimatePendingDataSize;
+            int frameIndex = 0;
 
             while (!stopFlag)
             {
@@ -181,30 +165,20 @@ namespace RemoteDesktopClient
                         continue;
                     }
 
-                    byte[] compressedData = new byte[compressedDataSize];
+                    Console.WriteLine($"{frameIndex} - {estimatePendingDataSize}");
+                    frameIndex++;
+
+                    byte[] pngImageData = new byte[compressedDataSize];
                     for (int i = 0; i < compressedDataSize; i++)
                     {
-                        compressedData[i] = _pendingData[i + 4];
+                        pngImageData[i] = _pendingData[i + 4];
                     }
-
-                    // uncompress gzip data
-                    byte[] uncompressedData = Utils.DecompressGzipData(compressedData);
-                    int uncompressedDataSize = uncompressedData.Length;
-                    int expectedFrameSize = (int)(width * height * 3);
-                    if ((uncompressedDataSize % expectedFrameSize) != 0)
-                    {
-                        Console.Error.WriteLine($"uncompressedDataSize: {uncompressedDataSize} - expectedFrameSize: {expectedFrameSize} - corrupted data stream");
-                        this.stopFlag = true;
-                        return;
-                    }
-
-                    Console.WriteLine($"uncompressedDataSize: {uncompressedDataSize}");
 
                     // TODO run callback async function
-                    if (onFrameData != null)
+                    if (onPngImageData != null)
                     {
                         // invoke the callback in thread
-                        (new Thread(() => onFrameData(uncompressedData))).Start();
+                        (new Thread(() => onPngImageData(pngImageData))).Start();
                         //onFrameData(uncompressedData);
                     }
 

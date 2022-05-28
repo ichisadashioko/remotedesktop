@@ -84,6 +84,7 @@ namespace RemoteDesktopClient
             this.Controls.Add(this.displayRenderControl);
             this.Controls.Add(this.connectButton);
             this.Controls.Add(this.remoteAddressTextBox);
+            this.DoubleBuffered = true;
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
