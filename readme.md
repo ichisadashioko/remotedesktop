@@ -31,3 +31,6 @@ And I would love to have the option to enter view only mode which my mouse would
 
 - I remember about some projects stream Raspberry Pi camera over HTTP. I lookup some implementation. It seems that it is only a simple HTTP request with response contains multiple JPG images data (full scale frame) back to back.
 - However, Chrome browser renders the seemingly navie with more overhead than I expected with excellent performance.
+- I swap JPG with PNG and it works perfectly fine.
+- If I found a way to efficiently render the UI with native application, I would like to implement it as the web has many limitations.
+- I will stick with this web server implementation for now.
