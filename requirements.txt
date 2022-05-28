@@ -1,0 +1,5 @@
+mss
+numpy
+cv2
+pillow
+pynput
