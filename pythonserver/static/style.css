@@ -1,0 +1,12 @@
+* {
+    background-color: black;
+    color: white;
+    margin: 0;
+    padding: 0;
+    image-rendering: pixelated;
+    /* overflow: hidden; */
+}
+
+::-webkit-scrollbar {
+    display: none;
+}

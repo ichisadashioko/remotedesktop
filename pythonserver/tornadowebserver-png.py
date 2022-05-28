@@ -92,6 +92,7 @@ class MainHandler(tornado.web.RequestHandler):
 app = tornado.web.Application([
     (r'/', MainHandler),
     (r'/([0-9]+)', MainHandler),
+    (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': 'static'}),
 ])
 
 
