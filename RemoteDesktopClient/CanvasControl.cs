@@ -8,9 +8,13 @@ namespace RemoteDesktopClient
     public class CanvasControl : Control
     {
         public Bitmap RenderingScreenImage;
+        public Bitmap _RenderingScreenImage;
         public CacheBitmap cacheBitmap;
         public bool autoResizing = false;
         public bool autoCentering = false;
+
+        public int? RenderScreenWidth;
+        public int? RenderScreenHeight;
 
         public void RenderCacheBitmap()
         {
@@ -27,7 +31,12 @@ namespace RemoteDesktopClient
             }
             Graphics g = Graphics.FromImage(cacheBitmap.bitmap);
 
-            if (RenderingScreenImage == null)
+            if (_RenderingScreenImage != RenderingScreenImage)
+            {
+                _RenderingScreenImage = RenderingScreenImage;
+            }
+
+            if (_RenderingScreenImage == null)
             {
                 g.Clear(Color.Black);
             }
@@ -35,7 +44,7 @@ namespace RemoteDesktopClient
             {
                 // TODO auto resizing
                 // TODO auto centering
-                g.DrawImage(RenderingScreenImage, new Point(0, 0));
+                g.DrawImage(_RenderingScreenImage, new Point(0, 0));
             }
 
             g.Dispose();

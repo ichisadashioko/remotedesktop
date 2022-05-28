@@ -28,24 +28,25 @@ namespace RemoteDesktopClient
         /// </summary>
         private void InitializeComponent()
         {
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.remoteAddressTextBox = new System.Windows.Forms.TextBox();
             this.connectButton = new System.Windows.Forms.Button();
-            this.panel1 = new RemoteDesktopClient.CanvasControl();
+            this.stopButton = new System.Windows.Forms.Button();
+            this.displayRenderControl = new RemoteDesktopClient.CanvasControl();
             this.SuspendLayout();
             //
-            // textBox1
+            // remoteAddressTextBox
             //
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.remoteAddressTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(12, 14);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(695, 20);
-            this.textBox1.TabIndex = 0;
+            this.remoteAddressTextBox.Location = new System.Drawing.Point(12, 14);
+            this.remoteAddressTextBox.Name = "remoteAddressTextBox";
+            this.remoteAddressTextBox.Size = new System.Drawing.Size(614, 20);
+            this.remoteAddressTextBox.TabIndex = 0;
             //
             // connectButton
             //
             this.connectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.connectButton.Location = new System.Drawing.Point(713, 12);
+            this.connectButton.Location = new System.Drawing.Point(632, 12);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(75, 23);
             this.connectButton.TabIndex = 1;
@@ -53,24 +54,36 @@ namespace RemoteDesktopClient
             this.connectButton.UseVisualStyleBackColor = true;
             this.connectButton.Click += new System.EventHandler(this.connectButton_Click);
             //
-            // panel1
+            // stopButton
             //
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.stopButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.stopButton.Location = new System.Drawing.Point(713, 12);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(75, 23);
+            this.stopButton.TabIndex = 3;
+            this.stopButton.Text = "stop";
+            this.stopButton.UseVisualStyleBackColor = true;
+            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
+            //
+            // displayRenderControl
+            //
+            this.displayRenderControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Location = new System.Drawing.Point(12, 40);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(776, 398);
-            this.panel1.TabIndex = 2;
+            this.displayRenderControl.Location = new System.Drawing.Point(12, 40);
+            this.displayRenderControl.Name = "displayRenderControl";
+            this.displayRenderControl.Size = new System.Drawing.Size(776, 398);
+            this.displayRenderControl.TabIndex = 2;
             //
             // Form1
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.stopButton);
+            this.Controls.Add(this.displayRenderControl);
             this.Controls.Add(this.connectButton);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.remoteAddressTextBox);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
@@ -80,8 +93,9 @@ namespace RemoteDesktopClient
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox remoteAddressTextBox;
         private System.Windows.Forms.Button connectButton;
-        private CanvasControl panel1;
+        private CanvasControl displayRenderControl;
+        private System.Windows.Forms.Button stopButton;
     }
 }

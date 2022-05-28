@@ -1,3 +1,4 @@
+import os
 import io
 import socket
 import gzip
@@ -16,7 +17,7 @@ SERVER_SOCKET.bind(('0.0.0.0', SERVER_PORT))
 
 print(f'waiting for connection on port {SERVER_PORT}')
 SERVER_SOCKET.listen(1)
-print('received connection')
+print('receiveing connection')
 CLIENT_SOCKET, CLIENT_ADDRESS = SERVER_SOCKET.accept()
 print('accepted connection')
 print(f'connected to {CLIENT_ADDRESS}')
@@ -28,8 +29,17 @@ with mss.mss() as sct:
     #     print(f'{i} - {sct.monitors[i]}')
 
     default_monitor = sct.monitors[1]
-    # TODO send width and height information
     print('default_monitor', default_monitor)
+    # TODO send width and height information
+    width = default_monitor['width']
+    height = default_monitor['height']
+    print(f'width: {width} height: {height}')
+    width_bs = width.to_bytes(4, byteorder='little')
+    height_bs = height.to_bytes(4, byteorder='little')
+    print('width_bs', width_bs)
+    print('height_bs', height_bs)
+    CLIENT_SOCKET.send(width_bs)
+    CLIENT_SOCKET.send(height_bs)
 
     # TODO while True
     while True:
