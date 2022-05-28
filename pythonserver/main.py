@@ -52,8 +52,8 @@ with mss.mss() as sct:
     height_bs = height.to_bytes(4, byteorder='little')
     print('width_bs', width_bs)
     print('height_bs', height_bs)
-    CLIENT_SOCKET.send(width_bs)
-    CLIENT_SOCKET.send(height_bs)
+    # CLIENT_SOCKET.send(width_bs)
+    # CLIENT_SOCKET.send(height_bs)
 
     # TODO while True
     while True:
