@@ -90,7 +90,7 @@ while True:
 
     bs = socket_connection.recv(65536)
     bs_len = len(bs)
-    print(time.perf_counter_ns(), bs_len)
+    print(time.perf_counter_ns(), bs_len, end='\r')
     if bs_len == 0:
         break
 

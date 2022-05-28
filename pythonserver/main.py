@@ -62,15 +62,15 @@ with mss.mss() as sct:
 
         CURRENT_FRAME_TIME_NS = time.perf_counter_ns()
         DELTA_TIME_NS = CURRENT_FRAME_TIME_NS - LAST_FRAME_TIME_NS
-        print(f'DELTA_TIME_NS: {DELTA_TIME_NS}')
+        # print(f'DELTA_TIME_NS: {DELTA_TIME_NS}')
         if DELTA_TIME_NS < WAIT_TIME_NS:
             DELTA_TIME_SECONDS = DELTA_TIME_NS / 10 ** 9
-            print(f'DELTA_TIME_SECONDS: {DELTA_TIME_SECONDS}')
+            # print(f'DELTA_TIME_SECONDS: {DELTA_TIME_SECONDS}')
             time.sleep(DELTA_TIME_SECONDS)
 
         mss_image = sct.grab(default_monitor)
         LAST_FRAME_TIME_NS = time.perf_counter_ns()
-        print('LAST_FRAME_TIME_NS', LAST_FRAME_TIME_NS)
+        # print('LAST_FRAME_TIME_NS', LAST_FRAME_TIME_NS)
 
         # print('type(mss_image)', type(mss_image))
 
@@ -89,7 +89,7 @@ with mss.mss() as sct:
         #     continue
         status, bs = cv2.imencode('.jpg', rgb_image)
         bs_len = len(bs)
-        print(time.perf_counter_ns(), 'len(bs)', bs_len)
+        print(time.perf_counter_ns(), 'len(bs)', bs_len, end='\r')
 
         if bs_len <= 0:
             continue
