@@ -7,6 +7,13 @@
 - Most browsers will probably cache (write them to disk) some kind of data (e.g. image frame) so it is advisable to use a browsing profile that is stored in `hard disk drive` to prevent the browser from destroying your solid state drive (e.g. `chrome.exe --user-profile-dir=HDD:\chromeprofile`).
 - The viewing browser tab cannot be refreshed or navigated to a different page. You must close the tab and open a new one if you want to change the streaming parameters (e.g. `http://localhost:21578` or default full size image stream and `http://localhost:21578?scaling=2` for a half size image stream).
 
+## Usage (webserver method)
+
+- Install `python` (development use `3.7.9`)
+- Install dependencies with `pip install -r ./requirements.txt`
+- Run the server in the remote machine with `python remotedesktopserver.py`
+- Visit the web page from another machine (e.g. `http://localhost:21578`)
+
 ## Problems with existing remote desktop solutions
 
 - TeamViewer, AnyDesk will sometimes not release my keyboard and mouse.

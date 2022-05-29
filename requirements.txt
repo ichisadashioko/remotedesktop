@@ -1,5 +1,7 @@
 mss
 numpy
-cv2
+opencv-python
 pillow
 pynput
+tornado
+tqdm
