@@ -1,5 +1,12 @@
 # remotedesktop
 
+## CAUTION!
+
+- The web server method eventhough does not ultilize much CPU power. When running the server and using the web browser to view the image stream in the same computer, they render `Task Manager` unusable. The other programs seem "fine".
+- The `python` server and the viewing `web browser` reported very high power usage.
+- Most browsers will probably cache (write them to disk) some kind of data (e.g. image frame) so it is advisable to use a browsing profile that is stored in `hard disk drive` to prevent the browser from destroying your solid state drive (e.g. `chrome.exe --user-profile-dir=HDD:\chromeprofile`).
+- The viewing browser tab cannot be refreshed or navigated to a different page. You must close the tab and open a new one if you want to change the streaming parameters (e.g. `http://localhost:21578` or default full size image stream and `http://localhost:21578?scaling=2` for a half size image stream).
+
 ## Problems with existing remote desktop solutions
 
 - TeamViewer, AnyDesk will sometimes not release my keyboard and mouse.
@@ -34,3 +41,22 @@ And I would love to have the option to enter view only mode which my mouse would
 - I swap JPG with PNG and it works perfectly fine.
 - If I found a way to efficiently render the UI with native application, I would like to implement it as the web has many limitations.
 - I will stick with this web server implementation for now.
+
+# OBS streaming
+
+- Use `obs-studio` to stream the remote desktop.
+- Use `mpv` to view the stream.
+
+- Open `Settings` in `OBS Studio`.
+- `Output` tab
+- Change `Output Mode` to `Advanced`
+- `Recording` tab
+- Change `Type` to `Custom Output (FFmpeg)`
+- `FFmpeg Output Type` to `Output to URL`
+- `File path or URL` to `udp://127.0.0.1:9999`
+- modify `Container Format` and `Video Bitrate` to fit your needs.
+- `Apply` settings
+- `Start Recording`
+
+- From terminal run `mpv udp://127.0.0.1:9999`
+- The video stream is smooth but it lags behind the remote desktop so much.
