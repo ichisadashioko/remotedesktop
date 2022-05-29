@@ -346,3 +346,5 @@ healthchecksdb
 *tmp*
 *sample*.json
 .ipynb_checkpoints
+*.cur
+bak

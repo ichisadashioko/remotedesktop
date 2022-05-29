@@ -27,12 +27,65 @@ import PIL.Image
 import cv2
 
 import mss
+import pynput
+import pynput.mouse
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+CURSOR_ICON_FILEPATH = os.path.join(ROOT, 'aero_arrow.png')
+if not os.path.exists(CURSOR_ICON_FILEPATH):
+    raise Exception(f'cursor icon file not found: {CURSOR_ICON_FILEPATH}')
+
+CURSOR_BGRA_IMAGE = cv2.imread(CURSOR_ICON_FILEPATH, cv2.IMREAD_UNCHANGED)
+CURSOR_HEIGHT, CURSOR_WIDTH = CURSOR_BGRA_IMAGE.shape[:2]
+CACHED_NON_ALPHA_INDEX_LIST = []
+for y in range(CURSOR_HEIGHT):
+    x_index_list = []
+    for x in range(CURSOR_WIDTH):
+        bgra_pixel = CURSOR_BGRA_IMAGE[y, x]
+        if bgra_pixel[3] != 0:
+            x_index_list.append(x)
+    CACHED_NON_ALPHA_INDEX_LIST.append(x_index_list)
+
+MOUSE_CONTROLLER = pynput.mouse.Controller()
+
+
+def merge_cursor(
+    bgra_image: np.ndarray,
+    location: tuple,
+    monitor_region: dict,
+):
+    mousex, mousey = location
+    monitor_left = monitor_region['left']
+    monitor_top = monitor_region['top']
+    monitor_right = monitor_region['left'] + monitor_region['width']
+    monitor_bottom = monitor_region['top'] + monitor_region['height']
+
+    if mousex < monitor_left or mousex > monitor_right:
+        return
+
+    if mousey < monitor_top or mousey > monitor_bottom:
+        return
+
+    image_height, image_width = bgra_image.shape[:2]
+    for y in range(CURSOR_HEIGHT):
+        real_y = y + mousey
+        if real_y >= image_height:
+            break
+
+        color_index_list = CACHED_NON_ALPHA_INDEX_LIST[y]
+        for x in color_index_list:
+            real_x = x + mousex
+            if real_x >= image_width:
+                break
+
+            bgra_image[real_y, real_x][0:3] = CURSOR_BGRA_IMAGE[y, x][0:3]
 
 
 def capture_screen_to_image_bytes(
     screen_region: dict = None,
     encode_image_format_extension: str = '.png',
     scaling_factor: float = None,
+    render_mouse_cursor: bool = False,
 ):
     with mss.mss() as sct:
         if screen_region is None:
@@ -40,6 +93,15 @@ def capture_screen_to_image_bytes(
 
         mss_image = sct.grab(screen_region)
         np_image = np.array(mss_image, dtype=np.uint8)
+
+        if render_mouse_cursor:
+            mouse_position = MOUSE_CONTROLLER.position
+            merge_cursor(
+                np_image,
+                mouse_position,
+                monitor_region=screen_region,
+            )
+
         rgb_image = cv2.cvtColor(np_image, cv2.COLOR_BGRA2BGR)
 
         if scaling_factor is not None:
@@ -246,7 +308,6 @@ def get_mime_type_by_filename(
 
 
 ########################################################################
-ROOT = os.path.dirname(os.path.abspath(__file__))
 WEBDATA_DIRECTORY = os.path.join(ROOT, 'webdata')
 VALID_HTML_INDEX_FILENAME_LIST = [
     'index.html',
@@ -457,7 +518,7 @@ class AllRequestHandler(tornado.web.RequestHandler):
 
 
 ########################################################################
-def web_parser_scaling_value(value_list: list):
+def web_parse_scaling_value(value_list: list):
     if len(value_list) == 0:
         return None
 
@@ -475,28 +536,92 @@ def web_parser_scaling_value(value_list: list):
         return None
 
 
-########################################################################
-DEFAULT_FRAME_RATE = 30
-FRAME_RATE = DEFAULT_FRAME_RATE
-IMAGESTREAM_WAIT_TIME_SECONDS = 1 / FRAME_RATE
+def web_parse_image_format_value(value_list: list):
+    if len(value_list) == 0:
+        return None
 
-IMAGE_FORMAT = 'png'
-IMAGE_EXTENSION = '.png'
-IMAGE_CONTENT_TYPE_HEADER = f'Content-Type: image/{IMAGE_FORMAT}'
+    value_bs = value_list[0]
+    if len(value_bs) == 0:
+        return None
+
+    try:
+        value_str = value_bs.decode('ascii')
+        value_str = value_str.lower()
+        if value_str in ('png', 'jpg', 'jpeg'):
+            return value_str
+    except Exception as ex:
+        pass
+
+    return None
+
+
+def web_parse_frame_rate_value(value_list: list):
+    if len(value_list) == 0:
+        return None
+
+    value_bs = value_list[0]
+    if len(value_bs) == 0:
+        return None
+
+    try:
+        value_int = int(value_bs)
+        if value_int < 1:
+            return None
+
+        return value_int
+    except Exception as ex:
+        return None
+
+
+########################################################################
+DEFAULT_FRAME_RATE = 32
+MAX_FRAME_RATE = 128
+
+DEFAULT_IMAGE_FORMAT = 'png'
 
 
 class ImageStreamHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get(self):
-        scaling_factor = None
         params = self.request.query_arguments
         print(f'ImageStreamHandler: params: {params}')
 
+        scaling_factor = None
+        render_mouse_cursor = False
+        image_format = DEFAULT_IMAGE_FORMAT
+        frame_rate = DEFAULT_FRAME_RATE
+
         if 'scaling' in params:
             scaling_value_list = params['scaling']
-            scaling_factor = web_parser_scaling_value(scaling_value_list)
+            scaling_factor = web_parse_scaling_value(scaling_value_list)
+        if 'cursor' in params:
+            render_mouse_cursor = True
+        if 'format' in params:
+            image_format_value_list = params['format']
+            retval = web_parse_image_format_value(image_format_value_list)
+            if retval is not None:
+                image_format = retval
+
+        frame_rate_key_list = ['fps', 'framerate', 'frame_rate']
+        for frame_rate_key in frame_rate_key_list:
+            if frame_rate_key in params:
+                frame_rate_value_list = params[frame_rate_key]
+                retval = web_parse_frame_rate_value(frame_rate_value_list)
+                if retval is not None:
+                    frame_rate = retval
+                    break
+
+        if frame_rate > MAX_FRAME_RATE:
+            frame_rate = DEFAULT_FRAME_RATE
+        if frame_rate == 0:
+            frame_rate = DEFAULT_FRAME_RATE
+
+        sleep_time_seconds = 1.0 / frame_rate
+        image_content_type_header = f'Content-Type: image/{image_format}\r\n'
+        image_ext = f'.{image_format}'
 
         self.set_header('Content-Type', 'multipart/x-mixed-replace;boundary=--frame')
+
         while True:
             # check if connection is still alive
             if self.request.connection.stream.closed():
@@ -504,18 +629,19 @@ class ImageStreamHandler(tornado.web.RequestHandler):
                 break
 
             self.write('--frame\r\n')
-            self.write(IMAGE_CONTENT_TYPE_HEADER)
+            self.write(image_content_type_header)
 
             bs = capture_screen_to_image_bytes(
-                encode_image_format_extension=IMAGE_EXTENSION,
+                encode_image_format_extension=image_ext,
                 scaling_factor=scaling_factor,
+                render_mouse_cursor=render_mouse_cursor,
             )
 
             bs_len = len(bs)
             self.write(f'Content-Length: {bs_len}\r\n\r\n')
             self.write(bs)
             self.flush()
-            time.sleep(IMAGESTREAM_WAIT_TIME_SECONDS)
+            time.sleep(sleep_time_seconds)
 ########################################################################
 
 
@@ -523,21 +649,12 @@ DEFAULT_SERVER_PORT = 21578
 
 
 def main():
-    global IMAGE_EXTENSION, IMAGE_FORMAT, FRAME_RATE, IMAGESTREAM_WAIT_TIME_SECONDS, IMAGE_CONTENT_TYPE_HEADER
     parser = argparse.ArgumentParser(description='Remote desktop webserver')
     parser.add_argument('port', type=int, default=DEFAULT_SERVER_PORT, nargs='?')
-    parser.add_argument('--framerate', type=int, default=DEFAULT_FRAME_RATE)
-    parser.add_argument('--imageformat', choices=['png', 'jpg'], default=IMAGE_FORMAT)
     args = parser.parse_args()
     print('args', args)
 
     PORT_NUMBER = args.port
-    FRAME_RATE = args.framerate
-    IMAGESTREAM_WAIT_TIME_SECONDS = 1 / FRAME_RATE
-    IMAGE_FORMAT = args.imageformat
-    IMAGE_EXTENSION = f'.{IMAGE_FORMAT}'
-
-    IMAGE_CONTENT_TYPE_HEADER = f'Content-Type: image/{IMAGE_FORMAT}'
 
     app = tornado.web.Application([
         (r'/imagestream', ImageStreamHandler),
@@ -547,6 +664,7 @@ def main():
     ])
 
     print(f'http://localhost:{PORT_NUMBER}')
+    print(f'http://localhost:{PORT_NUMBER}/?cursor&fps=32&format=jpg')
     app.listen(PORT_NUMBER, address='0.0.0.0')
     tornado.ioloop.IOLoop.current().start()
 
